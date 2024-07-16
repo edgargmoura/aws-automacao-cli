@@ -1,0 +1,17 @@
+#Script run instances
+aws ec2 run-instances --instance-type t3.micro --subnet-id subnet-050d251685f8d9e31 --count 1 --image-id ami-0b72821e2f351e396 --region us-east-1 --security-group-ids sg-0c8187936c0f2de45 --key-name cursoautomacaokey --tag-specifications 'ResourceType=instance,Tags=[{Key=webserver,Value=formacao-cli}]' --output json
+
+#Script describe instance id + state + tag
+aws ec2 describe-instances --filters "Name=tag:webserver,Values=formacao-cli" --query "Reservations[*].Instances[*].[InstanceId,ImageId,State.Name,Tags[?Key=='webserver'].Value | [0]]" --output table
+
+#Script stop instances
+instance_ids=$(aws ec2 describe-instances --profile automacao-cli --filters "Name=tag:grupo,Values=automacao-cli" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" | tr -d '[],"')
+aws ec2 stop-instances --instance-id $instance_ids --output table
+
+#Script start instances
+instance_ids=$(aws ec2 describe-instances --profile automacao-cli --filters "Name=tag:grupo,Values=automacao-cli" "Name=instance-state-name,Values=stopped" --query "Reservations[*].Instances[*].InstanceId" | tr -d '[],"')
+aws ec2 start-instances --instance-id $instance_ids --output table
+
+#Script terminate instances
+instance_ids=$(aws ec2 describe-instances --profile automacao-cli --filters "Name=tag:grupo,Values=automacao-cli" --query "Reservations[*].Instances[*].InstanceId" | tr -d '[],"')
+aws ec2 terminate-instance --instance-id $instance_ids --output table
